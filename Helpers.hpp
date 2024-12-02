@@ -3,7 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
-#include <vulkan.h>
+#include <vulkan/vulkan.h>
 
 static uint32_t QueryMemoryTypeIndex(VkMemoryPropertyFlagBits PreferredMemoryType, uint32_t RequiredMemoryTypes, const VkPhysicalDeviceMemoryProperties2& DeviceMemoryInfo)
 {

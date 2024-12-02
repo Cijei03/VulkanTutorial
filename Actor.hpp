@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include <vulkan.h>
+#include <vulkan/vulkan.h>
 
 struct SceneActor
 {
