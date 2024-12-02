@@ -151,6 +151,7 @@
     <ClCompile Include="wavefront_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
     <None Include="compile_shaders.ps1" />
     <None Include="shaders\sources\deferred_shading_pass.frag" />
     <None Include="shaders\sources\deferred_shading_pass.vert" />

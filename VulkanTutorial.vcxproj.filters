@@ -42,6 +42,7 @@
     <None Include="shaders\sources\shadow_map_generation.frag" />
     <None Include="shaders\sources\deferred_shading_pass.vert" />
     <None Include="shaders\sources\deferred_shading_pass.frag" />
+    <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="wavefront_loader.hpp">
