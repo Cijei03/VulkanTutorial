@@ -84,7 +84,7 @@ GBufferGenerationPass::GBufferGenerationPass(VkDevice Device, const uint32_t Gra
 			//Content.ViewMatrix = glm::translate(Content.ViewMatrix, glm::vec3(-9.0f, -5.0f, -10.0f));
 			Content.ViewMatrix = glm::translate(Content.ViewMatrix, glm::vec3(-9.0f, 8.0f, -8.0f));
 
-			Content.ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 100.0f);
+			Content.ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1600.0f / 900.0f, 0.1f, 100.0f);
 
 			std::memcpy(MappedBufferPtr, &Content, sizeof(Content));
 
@@ -183,8 +183,8 @@ GBufferGenerationPass::GBufferGenerationPass(VkDevice Device, const uint32_t Gra
 				.format = VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT,
 				.extent =
 				{
-					.width = 1280,
-					.height = 720,
+					.width = 1600,
+					.height = 900,
 					.depth = 1
 				},
 				.mipLevels = 1,
@@ -364,8 +364,8 @@ GBufferGenerationPass::GBufferGenerationPass(VkDevice Device, const uint32_t Gra
 			.renderPass = SceneRenderPass,
 			.attachmentCount = 3,
 			.pAttachments = Attachments,
-			.width = 1280,
-			.height = 720,
+			.width = 1600,
+			.height = 900,
 			.layers = 1
 		};
 
@@ -503,8 +503,8 @@ void GBufferGenerationPass::SetupPipeline()
 	{
 		.x = 0,
 		.y = 0,
-		.width = 1280,
-		.height = 720,
+		.width = 1600,
+		.height = 900,
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f
 	};
@@ -518,8 +518,8 @@ void GBufferGenerationPass::SetupPipeline()
 		},
 		.extent
 		{
-			.width = 1280,
-			.height = 720
+			.width = 1600,
+			.height = 900
 		}
 	};
 
@@ -684,8 +684,8 @@ void GBufferGenerationPass::RecordCommandBuffer(VkCommandBuffer CommandBuffer, c
 			},
 			.extent
 			{
-				.width = 1280,
-				.height = 720
+				.width = 1600,
+				.height = 900
 			}
 		},
 		.clearValueCount = static_cast<uint32_t>(ClearValues.size()),

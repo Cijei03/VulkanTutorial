@@ -8,6 +8,8 @@ ShadowMapGenerationPass::ShadowMapGenerationPass(VkDevice Device, const uint32_t
 {
 	// Shadow map creation.
 	{
+		const auto MipMapLevels = log(this->ShadowMapResolution) + 1;
+
 		// Setup image.
 		{
 			VkImageCreateInfo CreationInfo
@@ -23,7 +25,7 @@ ShadowMapGenerationPass::ShadowMapGenerationPass(VkDevice Device, const uint32_t
 					.height = ShadowMapResolution,
 					.depth = 1
 				},
-				.mipLevels = 1,
+				.mipLevels = static_cast<uint32_t>(MipMapLevels),
 				.arrayLayers = 1,
 				.samples = VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT,
 				.tiling = VkImageTiling::VK_IMAGE_TILING_OPTIMAL,

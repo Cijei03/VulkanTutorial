@@ -2,47 +2,82 @@
 #include <fstream>
 #include <cassert>
 #include <sstream>
+#include <span>
+
+#include <thread>
+#include <condition_variable>
+#include <mutex>
+#include <chrono>
+#include <atomic>
+#include <memory>
 
 #include <iostream>
 
-static std::vector<std::string> SequenceLine(const std::string_view XStr)
+static std::vector<std::string> GenerateInputBuffer(const std::string_view XStr, const char Char)
 {
-	std::vector<std::string> SequencedLine;
+	std::vector<std::string> InputBuffer;
 
 	size_t LastI = 0;
 	for (size_t i = 0; i < XStr.length(); i++)
 	{
-		if (XStr[i] == ' ' || i == XStr.length() - 1)
+		if (XStr[i] == Char || i == XStr.length() - 1)
 		{
 			auto x = std::string(XStr.substr(LastI, (i + 1) - LastI));
-			std::erase(x, ' ');
-			SequencedLine.push_back(x);
+			std::erase(x, Char);
+			InputBuffer.push_back(x);
 			LastI = i;
 		}
 	}
 
-	return SequencedLine;
+	return InputBuffer;
 }
 
-static std::vector<std::string> SequenceFaceLine(const std::string_view XStr)
+struct TriangleIndices
 {
-	std::vector<std::string> SequencedLine;
+	std::vector<uint32_t> PositionIndices = std::vector<uint32_t>(3);
+	std::vector<uint32_t> NormalIndices = std::vector<uint32_t>(3);
+	std::vector<uint32_t> TextureCoordIndices = std::vector<uint32_t>(3);
+};
 
-	size_t LastI = 0;
-	for (size_t i = 0; i < XStr.length(); i++)
+static void ProcessTrianglesIntoObject(
+	tnr::m3d::wavefront::tnrObject& Object, 
+	const std::span<TriangleIndices>& TrianglesOutput, 
+	const std::vector<tnr::m3d::wavefront::tnrObject::vec3<float>>& PositionsSource,
+	const std::vector<tnr::m3d::wavefront::tnrObject::vec3<float>>& NormalsSource,
+	const std::vector<tnr::m3d::wavefront::tnrObject::vec2<float>>& TextureCoordsSource,
+	const bool ShouldFlipY
+)
+{
+	Object.Positions.reserve(TrianglesOutput.size() * 3);
+	Object.Normals.reserve(TrianglesOutput.size() * 3);
+	Object.TextureCoords.reserve(TrianglesOutput.size() * 3);	
+
+	for (const auto& Triangle : TrianglesOutput)
 	{
-		if (XStr[i] == '/' || i == XStr.length() - 1)
+		for (const auto Index : Triangle.PositionIndices)
 		{
-			auto x = std::string(XStr.substr(LastI, (i + 1) - LastI));
-			std::erase(x, '/');
-			std::erase(x, ' ');
-			SequencedLine.push_back(x);
-			LastI = i;
+			auto Position = PositionsSource[Index];
+
+			if (ShouldFlipY)
+			{
+				Position.y *= -1.0f;
+			}
+
+			Object.Positions.push_back(Position);
+		}
+
+		for (const auto Index : Triangle.NormalIndices)
+		{
+			Object.Normals.push_back(NormalsSource[Index]);
+		}
+
+		for (const auto Index : Triangle.TextureCoordIndices)
+		{
+			Object.TextureCoords.push_back(TextureCoordsSource[Index]);
 		}
 	}
-
-	return SequencedLine;
 }
+
 
 namespace tnr::m3d::wavefront
 {
@@ -57,9 +92,9 @@ namespace tnr::m3d::wavefront
 			if (Cache.length() < 1) continue;
 			if (Cache[0] == '#') continue;
 
-			auto SequencedLine = SequenceLine(Cache);
+			auto InputBuffer = GenerateInputBuffer(Cache, ' ');
 
-			if (SequencedLine[0] == "newmtl")
+			if (InputBuffer[0] == "newmtl")
 			{
 				if (MaterialCache.MaterialName.length() > 0)
 				{
@@ -67,7 +102,7 @@ namespace tnr::m3d::wavefront
 				}
 				MaterialCache = tnrMaterial
 				{
-					.MaterialName = SequencedLine[1],
+					.MaterialName = InputBuffer[1],
 					.AmbientColor = {},
 					.AlbedoColor = {},
 					.SpecularColor = {},
@@ -79,52 +114,52 @@ namespace tnr::m3d::wavefront
 					.NormalMap = std::nullopt
 				};
 			}
-			else if (SequencedLine[0] == "Ka")
+			else if (InputBuffer[0] == "Ka")
 			{
 				MaterialCache.AmbientColor =
 				{
-					std::stof(SequencedLine[1]),
-					std::stof(SequencedLine[2]),
-					std::stof(SequencedLine[3])
+					std::stof(InputBuffer[1]),
+					std::stof(InputBuffer[2]),
+					std::stof(InputBuffer[3])
 				};
 			}
-			else if (SequencedLine[0] == "Kd")
+			else if (InputBuffer[0] == "Kd")
 			{
 				MaterialCache.AlbedoColor =
 				{
-					std::stof(SequencedLine[1]),
-					std::stof(SequencedLine[2]),
-					std::stof(SequencedLine[3])
+					std::stof(InputBuffer[1]),
+					std::stof(InputBuffer[2]),
+					std::stof(InputBuffer[3])
 				};
 			}
-			else if (SequencedLine[0] == "Ks")
+			else if (InputBuffer[0] == "Ks")
 			{
 				MaterialCache.SpecularColor =
 				{
-					std::stof(SequencedLine[1]),
-					std::stof(SequencedLine[2]),
-					std::stof(SequencedLine[3])
+					std::stof(InputBuffer[1]),
+					std::stof(InputBuffer[2]),
+					std::stof(InputBuffer[3])
 				};
 			}
-			else if (SequencedLine[0] == "Ns")
+			else if (InputBuffer[0] == "Ns")
 			{
-				MaterialCache.SpecularFactor = std::stof(SequencedLine[1]);
+				MaterialCache.SpecularFactor = std::stof(InputBuffer[1]);
 			}
-			else if (SequencedLine[0] == "Ni")
+			else if (InputBuffer[0] == "Ni")
 			{
-				MaterialCache.RefractionFactor = std::stof(SequencedLine[1]);
+				MaterialCache.RefractionFactor = std::stof(InputBuffer[1]);
 			}
-			else if (SequencedLine[0] == "map_Kd")
+			else if (InputBuffer[0] == "map_Kd")
 			{
-				MaterialCache.AlbedoMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ SequencedLine[1] });
+				MaterialCache.AlbedoMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ InputBuffer[1] });
 			}
-			else if (SequencedLine[0] == "map_Ks")
+			else if (InputBuffer[0] == "map_Ks")
 			{
-				MaterialCache.SpecularMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ SequencedLine[1] });
+				MaterialCache.SpecularMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ InputBuffer[1] });
 			}
-			else if (SequencedLine[0] == "map_bump" || SequencedLine[0] == "bump")
+			else if (InputBuffer[0] == "map_bump" || InputBuffer[0] == "bump")
 			{
-				MaterialCache.NormalMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ SequencedLine[1] });
+				MaterialCache.NormalMap = std::optional<tnrMaterial::tnrTextureInfo>(tnrMaterial::tnrTextureInfo{ InputBuffer[1] });
 			}
 		}
 
@@ -135,110 +170,116 @@ namespace tnr::m3d::wavefront
 	}
 	void tnrWavefrontLoader::LoadObject(const std::string& ObjFile)
 	{
+		auto WholeStartTime = std::chrono::system_clock::now();
+
 		const bool ShouldFlipY = this->Flags & tnrWavefrontOpenFlag::FLIP_POSITION_Y_AXIS;
 
 		std::ifstream File(ObjFile);
 
-		std::string Cache;
+		std::string LineCache;
 		tnrObject ObjectCache;
 
 		std::vector<tnrObject::vec3<float>> Positions;
 		std::vector<tnrObject::vec3<float>> Normals;
 		std::vector<tnrObject::vec2<float>> TextureCoords;
-
-		while (std::getline(File, Cache, '\n'))
+		std::vector<TriangleIndices> TrianglesOutput;
+				
+		while (std::getline(File, LineCache, '\n'))
 		{
-			if (Cache.length() < 1) continue;
-			if (Cache[0] == '#') continue;
+			if (LineCache.length() < 1) continue;
+			if (LineCache[0] == '#') continue;
 
-			auto SequencedLine = SequenceLine(Cache);
+			//auto InputBuffer = SequenceLine(LineCache);
+			auto InputBuffer = GenerateInputBuffer(LineCache, ' ');
 
-			if (SequencedLine[0] == "o")
+			if (InputBuffer[0] == "o")
 			{
 				if (ObjectCache.ObjectName.length() > 0)
 				{
+					ProcessTrianglesIntoObject(ObjectCache, TrianglesOutput, Positions, Normals, TextureCoords, ShouldFlipY);
 					this->Objects.push_back(ObjectCache);
 				}
 
+				TrianglesOutput.clear();
+
 				ObjectCache = tnrObject
 				{
-					.ObjectName = SequencedLine[1],
+					.ObjectName = InputBuffer[1],
 					.MaterialName = "",
 					.Positions = std::vector<tnrObject::vec3<float>>(),
 					.Normals = std::vector<tnrObject::vec3<float>>()
 				};
-
-				//Positions.clear();
-				//Normals.clear();
-				//TextureCoords.clear();
 			}
-			else if (SequencedLine[0] == "v")
+			else if (InputBuffer[0] == "v")
 			{
-				Positions.push_back
-				(
-					tnrObject::vec3<float>
-					{
-						.x = std::stof(SequencedLine[1]),
-						.y = (ShouldFlipY ? std::stof(SequencedLine[2]) * -1.0f : std::stof(SequencedLine[2])),
-						.z = std::stof(SequencedLine[3])
-					}
-				);
-			}
-			else if (SequencedLine[0] == "vn")
-			{
-				Normals.push_back
-				(
-					tnrObject::vec3<float>
-					{
-						.x = std::stof(SequencedLine[1]),
-						.y = std::stof(SequencedLine[2]),
-						.z = std::stof(SequencedLine[3])
-					}
-				);
-			}
-			else if (SequencedLine[0] == "vt")
-			{
-				TextureCoords.push_back
-				(
-					tnrObject::vec2<float>
-					{
-						.x = std::stof(SequencedLine[1]),
-						.y = std::stof(SequencedLine[2])
-					}
-				);
-			}
-			else if (SequencedLine[0] == "usemtl")
-			{
-				ObjectCache.MaterialName = SequencedLine[1];
-			}
-			else if (SequencedLine[0] == "f")
-			{				
-				auto AddVertexData = 
-				[
-					&ObjectCache,
-					&Positions,
-					&Normals,
-					&TextureCoords
-				](const std::string_view Face) -> void
+				tnr::m3d::wavefront::tnrObject::vec3<float> Cache
 				{
-					const auto SequencedFace = SequenceFaceLine(Face);
-
-					size_t PositionIndex = std::stoul(SequencedFace[0]) - 1;
-					size_t TextureCoordIndex = std::stoul(SequencedFace[1]) - 1;
-					size_t NormalIndex = std::stoul(SequencedFace[2]) - 1;
-
-					ObjectCache.Positions.push_back(Positions[PositionIndex]);
-					ObjectCache.TextureCoords.push_back(TextureCoords[TextureCoordIndex]);
-					ObjectCache.Normals.push_back(Normals[NormalIndex]);
+					.x = std::stof(InputBuffer[1]),
+					.y = std::stof(InputBuffer[2]),
+					.z = std::stof(InputBuffer[3])
 				};
 
-				AddVertexData(SequencedLine[1]);
-				AddVertexData(SequencedLine[2]);
-				AddVertexData(SequencedLine[3]);
+				Positions.push_back(Cache);
+			}
+			else if (InputBuffer[0] == "vn")
+			{
+				tnr::m3d::wavefront::tnrObject::vec3<float> Cache
+				{
+					.x = std::stof(InputBuffer[1]),
+					.y = std::stof(InputBuffer[2]),
+					.z = std::stof(InputBuffer[3])
+				};
+
+				Normals.push_back(Cache);
+			}
+			else if (InputBuffer[0] == "vt")
+			{
+				tnr::m3d::wavefront::tnrObject::vec2<float> Cache
+				{
+					.x = std::stof(InputBuffer[1]),
+					.y = std::stof(InputBuffer[2])
+				};
+
+				TextureCoords.push_back(Cache);
+			}
+			else if (InputBuffer[0] == "usemtl")
+			{
+				ObjectCache.MaterialName = InputBuffer[1];
+			}
+			else if (InputBuffer[0] == "f")
+			{
+				const auto ProcessedInputVertex0 = GenerateInputBuffer(InputBuffer[1], '/');
+				const auto ProcessedInputVertex1 = GenerateInputBuffer(InputBuffer[2], '/');
+				const auto ProcessedInputVertex2 = GenerateInputBuffer(InputBuffer[3], '/');
+
+				const TriangleIndices TriangleCache
+				{
+					.PositionIndices
+					{
+						std::stoul(ProcessedInputVertex0[0]) - 1,
+						std::stoul(ProcessedInputVertex1[0]) - 1,
+						std::stoul(ProcessedInputVertex2[0]) - 1
+					},
+					.NormalIndices
+					{
+						std::stoul(ProcessedInputVertex0[2]) - 1,
+						std::stoul(ProcessedInputVertex1[2]) - 1,
+						std::stoul(ProcessedInputVertex2[2]) - 1
+					},
+					.TextureCoordIndices
+					{
+						std::stoul(ProcessedInputVertex0[1]) - 1,
+						std::stoul(ProcessedInputVertex1[1]) - 1,
+						std::stoul(ProcessedInputVertex2[1]) - 1
+					}
+				};
+
+				 TrianglesOutput.push_back(TriangleCache);
 			}
 		}
 		if (ObjectCache.ObjectName.length() > 0)
 		{
+			ProcessTrianglesIntoObject(ObjectCache, TrianglesOutput, Positions, Normals, TextureCoords, ShouldFlipY);
 			this->Objects.push_back(ObjectCache);
 		}
 	}

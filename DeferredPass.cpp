@@ -16,8 +16,8 @@ DeferredPass::DeferredPass(VkDevice Device, const uint32_t GraphicsQueueIndex, c
 				.format = VkFormat::VK_FORMAT_R16G16B16A16_UNORM,
 				.extent =
 				{
-					.width = 1280,
-					.height = 720,
+					.width = 1600,
+					.height = 900,
 					.depth = 1
 				},
 				.mipLevels = 1,
@@ -208,8 +208,8 @@ DeferredPass::DeferredPass(VkDevice Device, const uint32_t GraphicsQueueIndex, c
 			.renderPass = this->DeferredRenderPass,
 			.attachmentCount = 3,
 			.pAttachments = Attachments.data(),
-			.width = 1280,
-			.height = 720,
+			.width = 1600,
+			.height = 900,
 			.layers = 1
 		};
 
@@ -561,8 +561,8 @@ void DeferredPass::SetupPipeline()
 	{
 		.x = 0,
 		.y = 0,
-		.width = 1280,
-		.height = 720,
+		.width = 1600,
+		.height = 900,
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f
 	};
@@ -576,8 +576,8 @@ void DeferredPass::SetupPipeline()
 		},
 		.extent
 		{
-			.width = 1280,
-			.height = 720
+			.width = 1600,
+			.height = 900
 		}
 	};
 
@@ -697,8 +697,8 @@ void DeferredPass::RecordCommandBuffer(VkCommandBuffer CommandBuffer)
 			.offset = {},
 			.extent =
 			{
-				.width = 1280,
-				.height = 720
+				.width = 1600,
+				.height = 900
 			}
 		},
 		.clearValueCount = 1,

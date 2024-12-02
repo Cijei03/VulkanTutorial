@@ -1,0 +1,15 @@
+﻿  main.cpp
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267: "=": konwersja z "size_t" do "_Ty", możliwa utrata danych
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         with
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         [
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:             _Ty=uint32_t
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         ]
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(274,75): warning C4267: "=": konwersja z "size_t" do "uint32_t", możliwa utrata danych
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(284,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(294,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
+  Trwa generowanie kodu
+  0 of 2381 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Zakończono generowanie kodu
+  VulkanTutorial.vcxproj -> E:\C++\Visual Studio 2022\VulkanTutorial\x64\Release\VulkanTutorial.exe

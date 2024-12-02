@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <chrono>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
@@ -421,7 +422,11 @@ void LoadScene(VkDevice Device)
 	{
 		std::cout << "Loading scene from disk..." << std::endl;
 
+		const auto StartTime = std::chrono::system_clock::now();
+
 		tnr::m3d::wavefront::tnrWavefrontLoader Loader(tnr::m3d::wavefront::tnrWavefrontOpenFlag::FLIP_POSITION_Y_AXIS, "vulkan_scene.obj", "vulkan_scene.mtl");
+
+		const auto FinishTime = std::chrono::system_clock::now();
 
 		auto Geometry = Loader.GetLoadedObjects();
 
@@ -431,8 +436,10 @@ void LoadScene(VkDevice Device)
 			std::cout << "\tName: " << Obj.ObjectName << std::endl;
 			std::cout << "\tTriangles: " << Obj.Positions.size() / 3 << std::endl;
 		}
+
+		std::cout << "\nLoading finished in " << std::chrono::duration_cast<std::chrono::seconds>(FinishTime - StartTime).count() << "s.\n" << std::endl; // Reference time is 24 seconds.
 	
-		std::cout << "Uploading scene into GPU memory..." << std::endl;
+		std::cout << "Uploading scene into GPU memory...";
 
 		for (const auto& Obj : Geometry)
 		{
@@ -441,6 +448,8 @@ void LoadScene(VkDevice Device)
 
 			Actors.push_back(UnitializedActor);
 		}
+
+		std::cout << "Finished.\n" << std::endl;
 	}
 
 	if (!TUTORIAL_VK_DEBUG_DEALLOCATIONS)
@@ -524,7 +533,7 @@ int main()
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	GLFWwindow* PresentationWindow = glfwCreateWindow(1280, 720, "Vulkan Tutorial", nullptr, nullptr);
+	GLFWwindow* PresentationWindow = glfwCreateWindow(1600, 900, "Vulkan Tutorial", nullptr, nullptr);
 	if (!PresentationWindow)
 	{
 		std::cerr << "Failed to create window." << std::endl;
@@ -576,8 +585,8 @@ int main()
 		CreationInfo.minImageCount = 2;
 		CreationInfo.imageFormat = SupportedSwapchainCapabilities.ExposedSurfaceFormat.format;
 		CreationInfo.imageColorSpace = SupportedSwapchainCapabilities.ExposedSurfaceFormat.colorSpace;
-		CreationInfo.imageExtent.width = 1280;
-		CreationInfo.imageExtent.height = 720;
+		CreationInfo.imageExtent.width = 1600;
+		CreationInfo.imageExtent.height = 900;
 		CreationInfo.imageArrayLayers = 1;
 		CreationInfo.imageUsage = VkImageUsageFlagBits::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		CreationInfo.imageSharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE;
@@ -648,8 +657,8 @@ int main()
 			.extent =
 			VkExtent3D
 			{
-				.width = 1280,
-				.height = 720,
+				.width = 1600,
+				.height = 900,
 				.depth = 1
 			},
 			.mipLevels = 1,
@@ -885,8 +894,8 @@ int main()
 						.z = 0
 					},
 					{
-						.x = 1280,
-						.y = 720,
+						.x = 1600,
+						.y = 900,
 						.z = 1
 					}
 				},
@@ -899,8 +908,8 @@ int main()
 						.z = 0
 					},
 					{
-						.x = 1280,
-						.y = 720,
+						.x = 1600,
+						.y = 900,
 						.z = 1
 					}
 				}

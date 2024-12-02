@@ -1,0 +1,18 @@
+﻿  GBufferGenerationPass.cpp
+E:\C++\Visual Studio 2022\VulkanTutorial\GBufferGenerationPass.cpp(704,33): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych
+  main.cpp
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267: "=": konwersja z "size_t" do "_Ty", możliwa utrata danych
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         with
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         [
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:             _Ty=uint32_t
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(176,69): warning C4267:         ]
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(274,75): warning C4267: "=": konwersja z "size_t" do "uint32_t", możliwa utrata danych
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(284,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
+E:\C++\Visual Studio 2022\VulkanTutorial\main.cpp(294,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
+  RenderPass.cpp
+  DeferredPass.cpp
+  ShadowMapGenerationPass.cpp
+E:\C++\Visual Studio 2022\VulkanTutorial\ShadowMapGenerationPass.cpp(768,33): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych
+  wavefront_loader.cpp
+  Generowanie kodu...
+  VulkanTutorial.vcxproj -> E:\C++\Visual Studio 2022\VulkanTutorial\x64\Debug\VulkanTutorial.exe
